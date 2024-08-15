@@ -1,0 +1,63 @@
+
+:str3
+ldi A 7f
+
+:str2
+ldi a
+ldi b
+
+
+:str
+ldi T 0a
+jsm done
+sub
+trf A a
+ldi T
+trf b A
+adc
+trf A b
+trf a A
+jmp str
+
+:done
+phr A
+trf b A
+ldi T 0a
+jgr str2
+jeq str2
+ldi T 30
+add
+sta A write
+:write 1
+wri 1
+plr A
+add
+sta A write2
+:write2 1
+wri 1
+ldi T
+:stack 1
+spi
+lda A stack
+jeq end
+plr A
+ldi T 30
+add
+sta A write3
+:write3 1
+wri 1
+
+:end
+wri 1 0a
+lda A $0101
+jzr zero
+ldi T 01
+sub
+jmp wr
+
+:zero
+ldi A 7f
+
+:wr
+sta A $0101
+jmp str3
