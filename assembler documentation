@@ -1,0 +1,130 @@
+
+
+
+Coments are identified by "#" at the start of the line.
+Example:
+#this is a comment
+
+All addresses (exept offsets) are in hexadecimal.
+
+Labels are identified by ":" at the start of the line.
+After a lebel is created, if nothing is written it will use its current address.
+Otherwise it can be followed by and address, a different label or a offset that is added to the current address.
+Example where current address 0x10:
+:label        (this label has no other parameters, thus it will take its current address of 0x10)
+:label $0020  (this label has an address as a parameter, thus it address will be 0x20)
+:label 1      (this label has a offset as a parameter, thus it will take its current address + offset being 0x11)
+:label -1     (0x0f)
+:label other-label (this label has another label as a parameter, thus it will take the other labels address as its own address)
+
+Registers are used as parameters in transfer and load/store instructions.
+Registers:
+A = acc
+T = tmp
+a = A
+b = B
+c = C
+d = D
+
+The assembler has basic error detection, returning: an error number, error line number and a description of the error.
+
+
+Instructions:
+
+Load/Store:
+
+  Load/Store immediate:
+  ldi register
+  sti register
+  Example:
+  ldi A
+  sti A
+
+  Load/Store address:
+  lda register address
+  sta register address
+  Example:
+  lda A $0010
+  sta a label
+
+Transfer:
+trf source_register destination_register
+Example:
+trf A T
+
+Operations(operation do not requier any parameters, they are executer on the acc and tmp or just acc):
+add - add
+adc - add with carry
+sub - subtract
+mul - multiply
+shr - shift right
+shl - shift left
+not - not
+and - and
+or  - or
+xor - xor
+
+Jumps:
+jmp address
+
+jmp - unconditional
+jca - if carry
+jzr - if zero
+jgr - if greater
+jsm - if smaller
+jeq - if equal
+jpo - if positive
+jng - if negative
+jen - if even
+jod - if odd
+jsh - if shift carry
+jin - if intterupt
+jne - not equal
+Example:
+jmp $0010
+jgr label
+
+Stack operations:
+phr register - push register
+plr register - pull register
+pha - push address
+pla - pull address
+spi - store stack pointer immediate
+spa address - store stack pointer address
+Example:
+phr A
+plr T
+spa $0010
+spa label
+
+Address operations:
+laa address - load address from address
+sai - store address in immediate
+saa address - store address in address
+Example:
+laa $0010
+laa label
+saa $0010
+saa label
+
+I/O(ports go from 0 to f):
+wri port - write immediate to port
+wra port address - write address to port
+rdi - read from last intterupt port and store in immediate
+rda address - read from last port and store in address
+rdp port - read from port and store in immediate
+Example:
+wri 1
+wra 2 $0010
+wra 3 label
+rda $0010
+rda label
+rdp 4
+
+Intterupt:
+lii - load immediate in intterupt address
+lia address - load address in intterupt address
+rti - return from intterupt/pull address from stack (rti is written at the end or when you want to return from intterupt subroutine to previous location)
+Example:
+lia $0010
+lia label
