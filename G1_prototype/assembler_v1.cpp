@@ -646,8 +646,10 @@ int main(){
 
 
         else if(line.substr(0, 3) == "lii"){
-            hexcode += "c30000";
+            hexcode += "c3";
 
+            load_address(4);
+            
             address += 2;
 
         }
