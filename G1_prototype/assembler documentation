@@ -26,6 +26,8 @@ b = B
 c = C
 d = D
 
+Instructions that require an immediate byte as input will write 00 in the absence of a number.
+
 The assembler has basic error detection, returning: an error number, error line number and a description of the error.
 
 
@@ -37,7 +39,7 @@ Load/Store:
   ldi register
   sti register
   Example:
-  ldi A
+  ldi A 05
   sti A
 
   Load/Store address:
@@ -108,13 +110,13 @@ saa $0010
 saa label
 
 I/O(ports go from 0 to f):
-wri port - write immediate to port
+wri port byte - write immediate to port
 wra port address - write address to port
 rdi - read from last intterupt port and store in immediate
 rda address - read from last port and store in address
 rdp port - read from port and store in immediate
 Example:
-wri 1
+wri 1 0a
 wra 2 $0010
 wra 3 label
 rda $0010
@@ -124,7 +126,7 @@ rdp 4
 Intterupt:
 lii - load immediate in intterupt address
 lia address - load address in intterupt address
-rti - return from intterupt/pull address from stack (rti is written at the end or when you want to return from intterupt subroutine to previous location)
+rti - return from intterupt
 Example:
 lia $0010
 lia label
