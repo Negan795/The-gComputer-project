@@ -770,6 +770,8 @@ if(error.size() > 0){
 
 
 
-cout<<"\n\nDone\n\n";
-
+cout<<"\n\nDone";
+cout<<"\nPress any key to end the program.\n";
+system("read");
+    
 }
