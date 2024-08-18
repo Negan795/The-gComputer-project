@@ -7,8 +7,6 @@
 #include <string>
 #include <iomanip>
 
-// idk, problem, address position is ok, address is behind or ahead
-
 using namespace std;
 
 
