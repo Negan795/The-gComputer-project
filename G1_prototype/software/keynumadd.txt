@@ -1,0 +1,150 @@
+
+
+
+
+:binval
+nop
+:binadd
+nop
+:isdone
+nop
+
+
+lii interrupt
+
+
+:loop
+lda A isdone
+ldi T
+jeq loop
+lda A binval
+lda T binadd
+add
+jmp str_div
+
+
+
+
+
+:interrupt
+rda keyvalue
+
+wra 1 keyvalue
+
+lda A keyvalue
+ldi T 0a
+jeq input_end
+ldi T 2b
+jeq signsave
+sta A temp
+ldi T
+lda A sign
+jgr secondvalue
+
+lda A temp
+ldi T 30
+sub
+sta A keyvalue
+ldi T 0a
+lda A binval
+mul
+lda T keyvalue
+add
+sta A binval
+jmp interruptend
+
+
+:signsave
+sta A sign
+jmp interruptend
+
+
+:secondvalue
+lda A temp
+ldi T 30
+sub
+sta A keyvalue
+ldi T 0a
+lda A binadd
+mul
+lda T keyvalue
+add
+sta A binadd
+
+:interruptend
+jin interrupt
+
+rti
+
+:keyvalue
+nop
+:sign
+nop
+:temp
+nop
+
+
+:input_end
+sta A isdone
+rti
+
+
+
+
+
+
+
+#write to screen
+:str_div
+ldi a
+ldi b
+
+:div
+ldi T 0a
+jsm done
+sub
+trf A a
+ldi T
+trf b A
+adc
+trf A b
+trf a A
+jmp div
+
+:done
+phr A
+trf b A
+ldi T 0a
+jgr str_div
+jeq str_div
+ldi T 30
+add
+sta A write
+:write 1
+wri 1
+plr A
+add
+sta A write2
+:write2 1
+wri 1
+ldi T
+:stack 1
+spi
+lda A stack
+jeq end
+plr A
+ldi T 30
+add
+sta A write3
+:write3 1
+wri 1
+
+
+:end
+wri 1 0a
+ldi A
+sta A binval
+sta A binadd
+sta A isdone
+sta A sign
+jmp loop
