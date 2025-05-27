@@ -1,0 +1,135 @@
+gRISC isa version 1:
+
+
+
+first 6bits will be the isntruction
+the next 5+5 bit sets will be used for registers
+11111 = [address], 11110 = immediate
+
+d = dont care
+F = if 1, use [address] from another register if the option is available
+V = variant, will use those bits to choose an instruction variant
+
+10110 - Stack pointer
+10111 - Stack size
+11000 - System stack pointer
+11001 - System stack size 
+11010 - Flag register
+11011 - State register
+11100 - program counter 
+11101 - Interrupt address register
+
+
+
+
+
+000000 ddddd ddddd - NOP
+
+
+=================================================
+=================================================
+register handling:
+
+$ 00001F XXXXX YYYYY - MOV, moves a value into a register, by choosing where to put [address]/register/immediate you can do either a store or load or transfer
+
+$ 000100 XXXXX YYYYY - SWAP, swaps 2 registers
+=================================================
+=================================================
+
+
+
+
+
+=================================================
+=================================================
+jumps and calls:
+
+they do not have and F bit, all registers are intended as if F = 1
+
+
+000101 0VVVV YYYYY - JUMP, jumps to the specified [address]
+
+000101 1VVVV YYYYY - CALL, pushes the PC to the stack and jumps to the specified [address]
+
+
+V value list: jump conditions
+0000 - unconditional
+0001 - carry
+0010 - overflow
+0011 - zero
+0100 - not zero
+0101 - equal
+0110 - not equal
+0111 - greater
+1000 - smaller
+1001 - negative
+1010 - positive
+1011 - even
+1100 - odd
+1101 - 
+1110 - 
+1111 - 
+=================================================
+=================================================
+
+
+
+00011F XXXXX YYYYY - ADD, adds 2 values, the result will be stored in X
+
+00100F XXXXX YYYYY - SUB, subtracs 2 values, the result will be stored in X
+
+0011VF XXXXX YYYYY - MUL, multiplies 2 values, if V = 1 then the upper half of the result will be stored in X and the lower half in Y, if X or Y are not register and V = 1 then the behaviour is undefined
+
+01011F XXXXX YYYYY - ADDF, adds 2 float values, the result will be stored in X
+
+01100F XXXXX YYYYY - SUBF, subtracs 2 float values, the result will be stored in X
+
+0111VF XXXXX YYYYY - MULF, multiplies 2 float values
+
+
+
+10000F XXXXX YYYYY - AND, ANDs 2 values, the result will be stored in X
+
+10001F XXXXX YYYYY - OR,  ORs  2 values, the result will be stored in X
+
+10010F XXXXX YYYYY - XOR, XORs 2 values, the result will be stored in X
+
+
+
+1010VF XXXXX YYYYY - CMP, compares 2 values, if V = 1 then the comparation will be unsigned
+
+
+=================================================
+11VVVF XXXXX YYYYY - SHF, shift the contents of a register
+
+V values list:
+first  V selects left/right
+second V selects if to ring
+third  V selects if to use 2 registers
+=================================================
+
+
+
+=================================================
+=================================================
+10110F 0VVVV YYYYY - MISC, multiple simple instructions chosen by V
+
+V value list:
+0000 - NOT, NOTs the value Y
+0001 - NEG, negates the value Y
+0010 - INC, increments the value Y
+0011 - DEC, decrements the value Y
+0100 - PUSH, pushes the value Y to the stack
+0101 - SPUSH, pushes the value to the system stack
+0110 - PULL, pulls from the stack a value into Y
+0111 - SPULL, pulls from the system stack a value into Y
+1000 - INT, trigger software interrupt
+1001 - FLP, flips the Y value
+1010 - 
+1011 - 
+1100 - 
+1101 - 
+1110 - 
+1111 - 
+=================================================
+=================================================
