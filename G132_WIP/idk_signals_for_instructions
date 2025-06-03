@@ -1,1 +1,178 @@
 
+
+
+
+how stack works:
+stack size register, holds the max size for the stack
+
+stack pointer idk, fix this
+
+
+
+
+active low signals:
+    load IR
+    increment address
+    
+
+
+
+
+MOV:
+
+	load immediate into register
+	if X = imm and Y = R
+		enable falling edge
+		write to register
+		
+		
+	load address into register
+	if X = addr and Y = R
+	    enable falling edge
+	    falling delay
+	    write temp register
+	        if delay + condition
+	            load IR
+	            increment address
+	            alt address
+	                if not delay + condition
+	                    falling delay
+	                    write to register
+	                    
+	                    
+    store register immediate
+    if X = R and Y = imm
+        enable falling edge
+        falling delay
+        if not delay
+        write out
+            if delay and condition
+                rising delay
+                
+        
+    store register at address
+    if X = R and Y = addr
+        enable falling edge
+        falling delay
+        write temp register
+            if delay and condition
+                write out
+                rising delay
+                alt address
+                load IR
+                
+                
+    transfer register to register
+    if X = R and Y = R
+        write to register
+        
+        
+    
+SWAP:
+
+    if X = R and Y = R
+        write to register
+        write to temp 
+        temp data sel
+        falling delay
+            if delay and condition
+                write to register
+                register data sel
+                register address sel
+                rising delay
+                load IR
+                
+                
+JUMP:
+
+    if condition from VVVV is true and X = imm or addr and select bit is 0
+        enable falling edge
+        write to register
+        register address sel PC 
+        
+    
+    if condition from VVVV is true and X = R and select bit is 0
+        write to register
+        register data sel
+        register address sel PC
+                
+                
+                
+CALL:
+
+    if condition from VVVV is true and X = imm or addr and select bit is 1
+        enable falling edge
+        falling delay
+        write to temp register
+            if delay and condition
+                load IR
+                if stack size = stack pointer
+                    set stack overflow
+                else
+                    increment stack pointer
+                
+                
+       
+       
+    if condition from VVVV is true and X = R and select bit is 1         
+                
+                
+                
+                
+                
+STACK:
+
+    PUSH:
+    if condition from VVVV and X = R 
+        if system stack 
+            alt address system stack sel
+            if system stack size = system stack pointer
+                set system stack overflow
+            else
+                increment system stack pointer
+        else
+            alt address stack sel
+            if stack size = stack pointer
+                set stack overflow
+            else
+                increment stack pointer
+        write out
+            
+    
+    
+    PULL:
+    if condition from VVVV and X = R
+        if system stack
+            alt address system stack sel
+            if system stack pointer = 0
+                set system stack underflow
+            else
+                decrement system stack pointer
+        else
+            alt address stack sel
+            if stack pointer = 0
+                set stack underflow
+            else
+                decrement stack pointer
+        write to register
+
+
+
+
+
+interrupt handling:
+
+    if any interrupt signal is set and load IR is 1 and instruction finished
+        increment system stack pointer
+        alt address system stack sel
+        data out PC sel
+        write out
+        store interrup vector in PC
+    
+    
+    
+    
+    
+    
+    
+    
