@@ -48,7 +48,8 @@ smaller                           - set by compare
 positive                          - set by compare or arithmetic functions
 even                              - set by compare or arithmetic functions
 zero                              - set by compare or arithmetic functions
-stack overflow                    - set when PC + SP > stack size register, also triggers unmasked hardware interrupt
+stack overflow                    - set when SP + 1 > stack size register, also triggers unmasked hardware interrupt
+stack underflow                   - set when SP - 1 < stack size register, also triggers unmasked hardware interrupt
 timer 0 done                      - set when timer 0 reaches 0, also triggers unmasked hardware interrupt
 timer 1 done                      - set when timer 1 reaches 0, also triggers unmasked hardware interrupt
 combine timers                    - if 1 then the 2 timers will be combined into 1 that is double the size, both must be loaded before starting the countdown in this case
