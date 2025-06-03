@@ -48,6 +48,8 @@ smaller                           - set by compare
 positive                          - set by compare or arithmetic functions
 even                              - set by compare or arithmetic functions
 zero                              - set by compare or arithmetic functions
+system stack overflow             - set when SSP + 1 > system stack size register, also triggers unmasked hardware interrupt
+system stack underflow            - set when SSP - 1 < system stack size register, also triggers unmasked hardware interrupt
 stack overflow                    - set when SP + 1 > stack size register, also triggers unmasked hardware interrupt
 stack underflow                   - set when SP - 1 < stack size register, also triggers unmasked hardware interrupt
 timer 0 done                      - set when timer 0 reaches 0, also triggers unmasked hardware interrupt
