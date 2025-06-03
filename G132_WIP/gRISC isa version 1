@@ -1,38 +1,75 @@
 gRISC isa version 1:
 
 
+priviledged and unpriviledged modes will be distinguished by the MMU which will trigger an interrupt when detecting priviledged instuctions in unpriviledged mode
+MMU implementation is left to be implemented by the builder (at least for now)
+
+
 
 first 6bits will be the isntruction
 the next 5+5 bit sets will be used for registers
 11111 = [address], 11110 = immediate
 
 d = dont care
-F = if 1, use [address] from another register if the option is available
 V = variant, will use those bits to choose an instruction variant
+R = general use register
+X = source
+Y = destination
 
-10110 - Stack pointer
-10111 - Stack size
-11000 - System stack pointer
-11001 - System stack size 
-11010 - Flag register
+
+00000 - 10100 - general use registers
+
+10101 - timer 0
+10110 - timer 1
+10111 - Stack pointer
+11000 - Stack size
+11001 - System stack pointer
+11010 - System stack size 
 11011 - State register
 11100 - program counter 
 11101 - Interrupt address register
 
 
 
+=================================================
+=================================================
+State Register Values:
 
+systems with samller register may divide it into multiple smaller registers at the expense of general use registers
 
-000000 ddddd ddddd - NOP
+all of these flags can be set by an instruction such as MOV or other
 
+flags in order from first to last:
+
+overflow                          - set by addition or multiplication
+carry                             - set by arithmetic functions or shift out that is not ring
+greater                           - set by compare
+smaller                           - set by compare
+positive                          - set by compare or arithmetic functions
+even                              - set by compare or arithmetic functions
+zero                              - set by compare or arithmetic functions
+stack overflow                    - set when PC + SP > stack size register, also triggers unmasked hardware interrupt
+timer 0 done                      - set when timer 0 reaches 0, also triggers unmasked hardware interrupt
+timer 1 done                      - set when timer 1 reaches 0, also triggers unmasked hardware interrupt
+combine timers                    - if 1 then the 2 timers will be combined into 1 that is double the size, both must be loaded before starting the countdown in this case
+hardware interrupt mask           - if 1 then maskable hardware interrupt signals will pass, else wont
+software interrupt mask           - if 1 then maskable software interrupt signals will pass, else wont
+unmaskable hardware interrupt     - set by unmaskable hardware interrupt signal
+maskable hardware interrupt       - set by maskable hardware interrupt signal
+unmaskable software interrupt     - set by unmaskable software interrupt signal
+maskable software interrupt       - set by maskable software interrupt signal
+opration mask                     - will mask the operation for 1/4 of the data size
+opration mask                     - will mask the operation for 1/4 of the data size
+opration mask                     - will mask the operation for 1/4 of the data size
+opration mask                     - will mask the operation for 1/4 of the data size
 
 =================================================
 =================================================
 register handling:
 
-$ 00001F XXXXX YYYYY - MOV, moves a value into a register, by choosing where to put [address]/register/immediate you can do either a store or load or transfer
+000000 XXXXX YYYYY - MOV, moves a value into a register, by choosing where to put [address]/register/immediate you can do either a store or load or transfer, if X = Y then its a NOP
 
-$ 000100 XXXXX YYYYY - SWAP, swaps 2 registers
+000001 XXXXX YYYYY - SWP, swaps 2 registers, if X or Y are immediate or address then its unspecified behaviour
 =================================================
 =================================================
 
@@ -44,12 +81,16 @@ $ 000100 XXXXX YYYYY - SWAP, swaps 2 registers
 =================================================
 jumps and calls:
 
-they do not have and F bit, all registers are intended as if F = 1
+if Y = register then the value from the register will be used and wont requier an immediate address
+if Y = address then it will behave the same as immediate
+
+jump is the same as a MOV, but Y is always PC
+call is a jump but PC is pushed to stack before being overwritten
 
 
-000101 0VVVV YYYYY - JUMP, jumps to the specified [address]
+000010 XXXXX 0VVVV - JUMP, jumps to the specified [address]
 
-000101 1VVVV YYYYY - CALL, pushes the PC to the stack and jumps to the specified [address]
+000010 XXXXX 1VVVV - CALL, pushes the PC to the stack and jumps to the specified [address]
 
 
 V value list: jump conditions
@@ -66,70 +107,76 @@ V value list: jump conditions
 1010 - positive
 1011 - even
 1100 - odd
-1101 - 
-1110 - 
-1111 - 
+1101 - reserbed
+1110 - reserbed
+1111 - reserbed
 =================================================
 =================================================
 
 
 
-00011F XXXXX YYYYY - ADD, adds 2 values, the result will be stored in X
+001000 XXXXX YYYYY - ADD, adds 2 values, the result will be stored in X
 
-00100F XXXXX YYYYY - SUB, subtracs 2 values, the result will be stored in X
+001001 XXXXX YYYYY - SUB, subtracs 2 values, the result will be stored in X
 
-0011VF XXXXX YYYYY - MUL, multiplies 2 values, if V = 1 then the upper half of the result will be stored in X and the lower half in Y, if X or Y are not register and V = 1 then the behaviour is undefined
+00101V XXXXX YYYYY - MUL, multiplies 2 values, if V = 1 then the upper half of the result will be stored in X and the lower half in Y, if X or Y are not register and V = 1 then the behaviour is undefined
 
-01011F XXXXX YYYYY - ADDF, adds 2 float values, the result will be stored in X
+001100 XXXXX YYYYY - ADDF, adds 2 float values, the result will be stored in X
 
-01100F XXXXX YYYYY - SUBF, subtracs 2 float values, the result will be stored in X
+001101 XXXXX YYYYY - SUBF, subtracs 2 float values, the result will be stored in X
 
-0111VF XXXXX YYYYY - MULF, multiplies 2 float values
-
-
-
-10000F XXXXX YYYYY - AND, ANDs 2 values, the result will be stored in X
-
-10001F XXXXX YYYYY - OR,  ORs  2 values, the result will be stored in X
-
-10010F XXXXX YYYYY - XOR, XORs 2 values, the result will be stored in X
+00111V XXXXX YYYYY - MULF, multiplies 2 float values
 
 
 
-1010VF XXXXX YYYYY - CMP, compares 2 values, if V = 1 then the comparation will be unsigned
+000011 XXXXX YYYYY - AND, ANDs 2 values, the result will be stored in X
+
+000100 XXXXX YYYYY - OR,  ORs  2 values, the result will be stored in X
+
+000101 XXXXX YYYYY - XOR, XORs 2 values, the result will be stored in X
+
+
+
+00011V XXXXX YYYYY - CMP, compares 2 values, if V = 1 then the comparation will be unsigned
 
 
 =================================================
-11VVVF XXXXX YYYYY - SHF, shift the contents of a register
+010VVV XXXXX YYYYY - SHF, shift the contents of a register
 
 V values list:
 first  V selects left/right
 second V selects if to ring
 third  V selects if to use 2 registers
+
+if you use 2 registers then what is shifted out goes into the Y register, like if it was a register with double size
 =================================================
 
 
 
 =================================================
 =================================================
-10110F 0VVVV YYYYY - MISC, multiple simple instructions chosen by V
+011100 XXXXX 0VVVV - MISC, multiple simple instructions chosen by V
+the result is stored back into X
+X can only be a register, unspecified behaiour otherwise
 
 V value list:
-0000 - NOT, NOTs the value Y
-0001 - NEG, negates the value Y
-0010 - INC, increments the value Y
-0011 - DEC, decrements the value Y
-0100 - PUSH, pushes the value Y to the stack
+0000 - NOT, NOTs the value X
+0001 - NEG, negates the value X
+0010 - INC, increments the value X
+0011 - DEC, decrements the value X
+0100 - PUSH, pushes the value X to the stack
 0101 - SPUSH, pushes the value to the system stack
-0110 - PULL, pulls from the stack a value into Y
-0111 - SPULL, pulls from the system stack a value into Y
+0110 - PULL, pulls from the stack a value into X
+0111 - SPULL, pulls from the system stack a value into X
 1000 - INT, trigger software interrupt
-1001 - FLP, flips the Y value
-1010 - 
-1011 - 
-1100 - 
-1101 - 
-1110 - 
-1111 - 
+1001 - FLP, flips the X value (110001 -> 100011)
+1010 - reserbed
+1011 - reserbed
+1100 - reserbed
+1101 - reserbed
+1110 - reserbed
+1111 - reserbed
 =================================================
 =================================================
+
+011101 - 011111 and 110000 - 111111 are reserved for future extensions
