@@ -27,7 +27,7 @@ Y = destination
 11010 - System stack size 
 11011 - State register
 11100 - program counter 
-11101 - Interrupt address register
+11101 - Interrupt Vector
 
 
 
