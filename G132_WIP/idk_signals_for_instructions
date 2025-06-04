@@ -3,10 +3,13 @@
 
 
 how stack works:
-stack size register, holds the max size for the stack
 
-stack pointer idk, fix this
+stack pointer will hold address
 
+stack definer will be split, first 22 bits will hold starting address, remaining 10 bits will hold the size
+SSSS SSSS SSSS SSSS SSSS SSss ssss ssss
+if size = 0 then it only has 1k of memory
+max is 1023, equivalent to 1048576k, or aprox 1M, these are words not bytes
 
 
 
@@ -19,13 +22,13 @@ active low signals:
 
 
 MOV:
-
+    done
 	load immediate into register
 	if X = imm and Y = R
 		enable falling edge
 		write to register
 		
-		
+	done
 	load address into register
 	if X = addr and Y = R
 	    enable falling edge
@@ -39,7 +42,7 @@ MOV:
 	                    falling delay
 	                    write to register
 	                    
-	                    
+	done         
     store register immediate
     if X = R and Y = imm
         enable falling edge
@@ -49,19 +52,20 @@ MOV:
             if delay and condition
                 rising delay
                 
-        
+    done
     store register at address
     if X = R and Y = addr
         enable falling edge
         falling delay
         write temp register
             if delay and condition
+                increment address
                 write out
-                rising delay
+                falling delay
                 alt address
                 load IR
                 
-                
+    done         
     transfer register to register
     if X = R and Y = R
         write to register
@@ -69,7 +73,7 @@ MOV:
         
     
 SWAP:
-
+    done
     if X = R and Y = R
         write to register
         write to temp 
@@ -77,36 +81,35 @@ SWAP:
         falling delay
             if delay and condition
                 write to register
-                register data sel
+                register data sel temp
                 register address sel
-                rising delay
+                falling delay
                 load IR
                 
                 
 JUMP:
-
+    done
     if condition from VVVV is true and X = imm or addr and select bit is 0
         enable falling edge
         write to register
         register address sel PC 
         
-    
+    done
     if condition from VVVV is true and X = R and select bit is 0
         write to register
-        register data sel
         register address sel PC
                 
                 
                 
 CALL:
-
+    need to do stack before this
     if condition from VVVV is true and X = imm or addr and select bit is 1
         enable falling edge
         falling delay
         write to temp register
             if delay and condition
                 load IR
-                if stack size = stack pointer
+                if stack start + size = stack pointer
                     set stack overflow
                 else
                     increment stack pointer
@@ -126,17 +129,18 @@ STACK:
     if condition from VVVV and X = R 
         if system stack 
             alt address system stack sel
-            if system stack size = system stack pointer
+            if system stack start + size = system stack pointer
                 set system stack overflow
             else
                 increment system stack pointer
+                write out
         else
             alt address stack sel
-            if stack size = stack pointer
+            if stack start + size = stack pointer
                 set stack overflow
             else
                 increment stack pointer
-        write out
+                write out
             
     
     
@@ -144,17 +148,45 @@ STACK:
     if condition from VVVV and X = R
         if system stack
             alt address system stack sel
-            if system stack pointer = 0
+            if system stack pointer = stack start
                 set system stack underflow
             else
                 decrement system stack pointer
+                faling delay
         else
             alt address stack sel
-            if stack pointer = 0
+            if stack pointer = stack start
                 set stack underflow
             else
                 decrement stack pointer
-        write to register
+                falling delay
+                
+            if delay and condition
+                rising delay
+                write to register
+                
+
+
+ALU stuff:
+
+    register or immediate:
+    if condition
+        alu OP code
+        if both registers
+            write to register
+        if at least 1 is immediate
+            enable falling edge
+            if Y = imm
+                falling delay
+                
+    
+    register and address
+    
+
+
+
+
+
 
 
 
@@ -173,6 +205,30 @@ interrupt handling:
     
     
     
+carry  
+overflow
+greater 
+smaller 
+positive
+even    
+zero          
+    
+0000 - unconditional
+0001 - carry
+0010 - overflow
+0011 - zero
+0100 - not zero
+0101 - equal
+0110 - not equal
+0111 - greater
+1000 - smaller
+1001 - negative
+1010 - positive
+1011 - even
+1100 - odd
+1101 - reserbed
+1110 - reserbed
+1111 - reserbed
     
     
     
