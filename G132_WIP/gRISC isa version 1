@@ -41,8 +41,8 @@ all of these flags can be set by an instruction such as MOV or other
 
 flags in order from first to last:
 
-overflow                          - set by addition or multiplication
 carry                             - set by arithmetic functions or shift out that is not ring
+overflow                          - set by addition or multiplication
 greater                           - set by compare
 smaller                           - set by compare
 positive                          - set by compare or arithmetic functions
@@ -123,9 +123,9 @@ V value list: jump conditions
 1010 - positive
 1011 - even
 1100 - odd
-1101 - reserbed
-1110 - reserbed
-1111 - reserbed
+1101 - reserved
+1110 - reserved
+1111 - reserved
 =================================================
 =================================================
 
@@ -186,12 +186,12 @@ V value list:
 0111 - SPULL, pulls from the system stack a value into X
 1000 - INT, trigger software interrupt
 1001 - FLP, flips the X value (110001 -> 100011)
-1010 - reserbed
-1011 - reserbed
-1100 - reserbed
-1101 - reserbed
-1110 - reserbed
-1111 - reserbed
+1010 - reserved
+1011 - reserved
+1100 - reserved
+1101 - reserved
+1110 - reserved
+1111 - reserved
 =================================================
 =================================================
 
