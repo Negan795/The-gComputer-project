@@ -22,9 +22,9 @@ Y = destination
 10101 - timer 0
 10110 - timer 1
 10111 - Stack pointer
-11000 - Stack size
+11000 - Stack definer
 11001 - System stack pointer
-11010 - System stack size 
+11010 - System stack definer 
 11011 - State register
 11100 - program counter 
 11101 - Interrupt Vector
@@ -48,10 +48,10 @@ smaller                           - set by compare
 positive                          - set by compare or arithmetic functions
 even                              - set by compare or arithmetic functions
 zero                              - set by compare or arithmetic functions
-system stack overflow             - set when SSP + 1 > system stack size register, also triggers unmasked hardware interrupt
-system stack underflow            - set when SSP - 1 < system stack size register, also triggers unmasked hardware interrupt
-stack overflow                    - set when SP + 1 > stack size register, also triggers unmasked hardware interrupt
-stack underflow                   - set when SP - 1 < stack size register, also triggers unmasked hardware interrupt
+system stack overflow             - set when SSP + 1 > system stack start + size, also triggers unmasked hardware interrupt
+system stack underflow            - set when SSP - 1 < system stack start, also triggers unmasked hardware interrupt
+stack overflow                    - set when SP + 1 > stack start + size, also triggers unmasked hardware interrupt
+stack underflow                   - set when SP - 1 < stack start, also triggers unmasked hardware interrupt
 timer 0 done                      - set when timer 0 reaches 0, also triggers unmasked hardware interrupt
 timer 1 done                      - set when timer 1 reaches 0, also triggers unmasked hardware interrupt
 combine timers                    - if 1 then the 2 timers will be combined into 1 that is double the size, both must be loaded before starting the countdown in this case
@@ -65,6 +65,19 @@ opration mask                     - will mask the operation for 1/4 of the data 
 opration mask                     - will mask the operation for 1/4 of the data size
 opration mask                     - will mask the operation for 1/4 of the data size
 opration mask                     - will mask the operation for 1/4 of the data size
+
+=================================================
+=================================================
+Stack Definer:
+
+First 22 bits hold the starting address of the stack in memory.
+The remaining 10 bits specify the size, 0 = 1K, 1023 = 1M (words not bytes).
+
+If there isnt enough space for the stack then unspecified behaviour will occur when in reaches the end of memory
+
+=================================================
+=================================================
+
 
 =================================================
 =================================================
