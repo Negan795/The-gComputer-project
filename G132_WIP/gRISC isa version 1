@@ -61,6 +61,7 @@ unmaskable hardware interrupt     - set by unmaskable hardware interrupt signal
 maskable hardware interrupt       - set by maskable hardware interrupt signal
 unmaskable software interrupt     - set by unmaskable software interrupt signal
 maskable software interrupt       - set by maskable software interrupt signal
+operation mask mode               - when 0 the maked part will be 0, when 1 the masked part will be unafected by the operation
 opration mask                     - will mask the operation for 1/4 of the data size
 opration mask                     - will mask the operation for 1/4 of the data size
 opration mask                     - will mask the operation for 1/4 of the data size
