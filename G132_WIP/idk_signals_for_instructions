@@ -6,6 +6,7 @@ how stack works:
 
 stack pointer will hold address
 
+ignore, use stack start and chrck in software
 stack definer will be split, first 22 bits will hold starting address, remaining 10 bits will hold the size
 SSSS SSSS SSSS SSSS SSSS SSss ssss ssss
 if size = 0 then it only has 1k of memory
@@ -226,9 +227,9 @@ zero
 1010 - positive
 1011 - even
 1100 - odd
-1101 - reserbed
-1110 - reserbed
-1111 - reserbed
+1101 - reserved
+1110 - reserved
+1111 - reserved
     
     
     
