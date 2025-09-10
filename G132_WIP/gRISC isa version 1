@@ -1,3 +1,19 @@
+
+
+
+
+idea for memory IO:
+
+choose a number of connections
+make a set of addresses that will access those ports
+when they access them, they can read/write to a register
+that register will controll the address of the device
+
+
+
+
+
+
 gRISC isa version 1:
 
 
@@ -19,12 +35,10 @@ Y = destination
 
 00000 - 10100 - general use registers
 
-10101 - timer 0
-10110 - timer 1
-10111 - Stack pointer
-11000 - Stack start
-11001 - System stack pointer
-11010 - System stack start
+10111 - timer 0
+11000 - timer 1
+11001 - Stack pointer
+11010 - System stack pointer
 11011 - State register
 11100 - program counter 
 11101 - Interrupt Vector
@@ -42,21 +56,36 @@ all of these flags can be set by an instruction such as MOV or other
 flags in order from first to last:
 
 carry                             - set by arithmetic functions or shift out that is not ring
-overflow                          - set by addition or multiplication
+equal                             - set by compare
 greater                           - set by compare
 smaller                           - set by compare
-positive                          - set by compare or arithmetic functions
-even                              - set by compare or arithmetic functions
+negative                          - set by compare or arithmetic functions
+odd                               - set by compare or arithmetic functions
 zero                              - set by compare or arithmetic functions
-timer 0 done                      - set when timer 0 reaches 0, also triggers unmasked hardware interrupt
-timer 1 done                      - set when timer 1 reaches 0, also triggers unmasked hardware interrupt
-combine timers                    - if 1 then the 2 timers will be combined into 1 that is double the size, both must be loaded before starting the countdown in this case
+hardware interrupt                - set when a hardware interrupt is triggered
+software interrupt                - set when a software interrupt is triggered
+maskable interrupt                - set when a software or maskable hardware interrupt is triggered
+interrupt mask                    - when 1, maskable interrupts will pass, both hardware and software
+timer done                        - set when a timer reaches zero
+timer 0 index mode                - when 1, timer 0 will behave as a memory index
+timer 1 index mode                - when 1, timer 1 will behave as a memory index
+timer 0  mode                     - when 0, index mode will increment on read, else on write. when in timer mode it will increment instead of decrement
+timer 1  mode                     - when 0, index mode will increment on read, else on write. when in timer mode it will increment instead of decrement
+
+
+//more info: counter mode will behave as an address input and will change with r/w
+
+//removed
+combine timers                    - if 1 then the 2 timers will be combined into 1 that is double the size,
+                                    both must be loaded before starting the countdown in this case
 hardware interrupt mask           - if 1 then maskable hardware interrupt signals will pass, else wont
 software interrupt mask           - if 1 then maskable software interrupt signals will pass, else wont
 unmaskable hardware interrupt     - set by unmaskable hardware interrupt signal
 maskable hardware interrupt       - set by maskable hardware interrupt signal
 unmaskable software interrupt     - set by unmaskable software interrupt signal
 maskable software interrupt       - set by maskable software interrupt signal
+
+//removed
 operation mask mode               - when 0 the maked part will be 0, when 1 the masked part will be unafected by the operation
 opration mask                     - will mask the operation for 1/4 of the data size
 opration mask                     - will mask the operation for 1/4 of the data size
@@ -64,9 +93,11 @@ opration mask                     - will mask the operation for 1/4 of the data 
 opration mask                     - will mask the operation for 1/4 of the data size
 
 the other unused bits can be accesed by usermode programms to set bits, this may be used to set OS flags if you dont want to use a general register
+should be last 12bits, free for the user, number may vary depending on flags n'stuff
 =================================================
 =================================================
-ignore, replaced by stack start register
+//aslo ignore, replaced by software bounds cheking
+//ignore, replaced by stack start register
 Stack Definer:
 
 First 22 bits hold the starting address of the stack in memory.
@@ -84,7 +115,8 @@ register handling:
 
 000000 XXXXX YYYYY - MOV, moves a value into a register, by choosing where to put [address]/register/immediate you can do either a store or load or transfer, if X = Y then its a NOP
 
-000001 XXXXX YYYYY - SWP, swaps 2 registers, if X or Y are immediate or address then its unspecified behaviour
+//removed
+//000001 XXXXX YYYYY - SWP, swaps 2 registers, if X or Y are immediate or address then its unspecified behaviour
 =================================================
 =================================================
 
@@ -111,7 +143,7 @@ call is a jump but PC is pushed to stack before being overwritten
 V value list: jump conditions
 0000 - unconditional
 0001 - carry
-0010 - overflow
+0010 - overflow //removed
 0011 - zero
 0100 - not zero
 0101 - equal
@@ -134,12 +166,14 @@ V value list: jump conditions
 
 001001 XXXXX YYYYY - SUB, subtracs 2 values, the result will be stored in X
 
+//removed write to 2 registers
 00101V XXXXX YYYYY - MUL, multiplies 2 values, if V = 1 then the upper half of the result will be stored in X and the lower half in Y, if X or Y are not register and V = 1 then the behaviour is undefined
 
 001100 XXXXX YYYYY - ADDF, adds 2 float values, the result will be stored in X
 
 001101 XXXXX YYYYY - SUBF, subtracs 2 float values, the result will be stored in X
 
+//removed write to 2 registers
 00111V XXXXX YYYYY - MULF, multiplies 2 float values
 
 
@@ -161,7 +195,9 @@ V value list: jump conditions
 V values list:
 first  V selects left/right
 second V selects if to ring
-third  V selects if to use 2 registers
+
+//removed
+//third  V selects if to use 2 registers
 
 if you use 2 registers then what is shifted out goes into the Y register, like if it was a register with double size
 =================================================
@@ -184,7 +220,7 @@ V value list:
 0110 - PULL, pulls from the stack a value into X
 0111 - SPULL, pulls from the system stack a value into X
 1000 - INT, trigger software interrupt
-1001 - FLP, flips the X value (110001 -> 100011)
+1001 - FLP, flips the X value (ex. 110001 -> 100011)
 1010 - reserved
 1011 - reserved
 1100 - reserved
@@ -195,3 +231,72 @@ V value list:
 =================================================
 
 011101 - 011111 and 110000 - 111111 are reserved for future extensions
+
+
+
+
+
+pipeline signals:
+
+    decode to read: 16+22
+        data 1 if immediate (16)
+        X (5)
+        Y (5)
+        nop
+        X write
+        Y write
+        Y read //not used, too lazy to remove
+        alu (5)
+        jump
+        push
+        pull
+
+    read to execute: 32+15
+        data 1 (16)
+        data 2 (16)
+        nop
+        alu (5)
+        reg destination (5)
+        write
+        jump
+        push
+        carry
+
+    execute to writeback: 32+1
+        data 1 (16)
+        data 2 (16)
+        write
+
+
+interrupt how:
+
+    push PC
+    mov int_vec PC
+    nop
+    reset IR and all pipeline stages
+
+    when in IR start a counter = N of stages, feed push PC then mov int_vec PC then NOP, PC cant increment
+    when counter finishes, reset IRs, set state in case other interrupts have been activated at the same time
+
+
+
+10111 - timer 0
+11000 - timer 1
+11001 - Stack pointer
+11010 - System stack pointer
+11011 - State register
+11100 - program counter
+11101 - Interrupt Vector
+11110 - immediate
+11111 - address
+
+    03bc
+    0000 0011 1011 1100
+    000000 11101 11100
+
+    03db
+    0000 0011 1101 1011
+    000000 11110 11011
+
+    03
+    0000 0011 1100 0000
