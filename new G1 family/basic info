@@ -1,1 +1,41 @@
 
+Youre free to use anything here as long as you credit me, if possible tell me your use cases to know better what to prioritise in the next CPU.
+
+About the software, its a simple demonstration of the IO.
+The terminal uses address 0xffff, both for reading and writing.
+You can write 2 characters at the same time, 0xXXYY, XX is written first, YY is second.
+
+The written software and the binary code may not be 100% acurate to each other as i tried debbugging without much success.
+
+ISA:
+LOAD imm 0x8G0X, X is the destination register, G is the group(0=general, 1=special)
+LOAD addr 0x8G4X
+STORE imm 0x8G8X
+STORE addr 0x8GcX
+
+TRANSFER 0x9GYX, Y is the source, X is the destination, G(0 = gen -> gen, 1 = gen -> spe, 4 = spe -> gen, 5 = spe -> spe)
+
+LOGIC 0xaGYX, bottom bits of G work like before, top bits (00 = AND, 01 = OR, 10 = XOR, 11 = NOT)
+
+ARITHMETIC 0xbGYX, G is not group but will select operation, top bit is 0, others select (000 = ADD, SUB, NEG, SHIFT L, SHIFT R, ROTATE L, 110 = ROTATE R)
+
+STACK 0xbGYX, top bits of G are 10, bottom select register group, top bits of Y are 00, bottom select action (00 = PULL, 01 = PULL SYS, 10 = PUSH, 11 = PUSH SYS)
+
+SOFTWARE INTERRUPT 0xb940
+
+HALT 0xb850
+
+JUMP/BRANCH 0xcGYX, G is the condition (0000 = unconditional, greater(X>Y), equal, smaller, greater unsigned, smaller unsigned, zero, odd/LSB=1, negative/MSB=1)
+
+
+SPECIAL REGISTER ORDER:
+STATUS, CONTROL, INTERRUPT VECTOR, PROGRAM COUNTER, STACK POINTER, SYSTEM STACK POINTER, TIMER 0, TIMER 1, the rest are general register only accessible in priviledged mode
+
+STATUS REGISTER BITS: (from LSB to MSB)
+2 bit width, 1 priviledge level(0=priviledged), reserved, 4 version, 8 interrupt status (same order as the mask)
+
+CONTROL REGISTER BITS: (from LSB to MSB)
+8 interrupt mask (hardware maskable, software interrupt, 2 timers, unauthorised access), halt control (if 0 continue, if 1 goto INTVEC), halt control (same but with maskable interrupt), 2 reserved, timer controls (not implemented yet)
+
+
+next cpu targets are a very simple MMU and basic DMA. after that maybe a cache
