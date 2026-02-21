@@ -1,0 +1,11 @@
+
+This project has been going on for a year without yielding rewards and this I have decided to abandon it.
+
+The main causes were poor planning, increasing complexity before finishing the basic features and low drive to finish it.
+
+However I have managed to gain some experience from this project:
+  - how to make a pipeline
+  - what to add and not add to future designs
+  - whan an orthogonal architecture is
+  - how to better plan future projects
+  - not to use different clock edges in different locations
