@@ -1,0 +1,173 @@
+
+
+
+THE G32-B ISA PLANNING FILE:
+
+
+	General specs:
+		User register layout will be the same as RiscV, i.e. 32 register with r0-r30 being general use and r31 being PC.
+
+		No immediate addresses, if you want to jump or load from an address, the value must be inside a register.
+
+		No pipeline implementation, will use a function block design to prepare for OOE future implementation.
+
+		Every instruction will have an ID which will signal its length, it will be store in the first 16bit chunk.
+		Each bit equal to one will mean an aditional 16bit chunk, the total amount will be equal to N+1 of bits=1. 
+		The sequence will end with a 0 after the right most bit.
+		Ex: 0 = 16bit, 01 = 32bit, 011 = 64bit, etc...
+		Every 16bit chunk that is part of a larger sequence and is not the first chunk will have its LSB=0 to make it easier to manage different length instructions.
+
+		Instruction layout:
+			from LSB:
+				instruction length ID, 2-n bits
+				reg0, 5 bits - r
+				reg1, 5 bits - R
+                reg2, 5 bits - d
+                addr or not, 3 bits (dest,src,src. 0 = register, 1 = addr) - a
+				condition, 4 bits - c
+                
+                
+
+        
+        register space:
+            1024 addresses, each is a register not an amount of bytes. eg: addr 0 can be 32bits, 1 can bet 256 and 2 can be 32 again
+
+        #   reg 0 = PC
+        #   reg 1-255 general
+        #   reg 256 = control
+        #   reg 257 = status
+            reg 258 = info (cpu specs and model)
+        #   reg 259 = stack control, first four bits will select the stack pointer in use, next four are reserved, next eight are the same but select interrupt pointer, next bit will select if pointer increments on read or write(0=inc on write), next bit is the same for interrupt pointer, rest is reserved
+        #   reg 260 = stack pointer, there will still be multiple registers but will be selected by the control, also add a default interrupt stack pointer
+                        first cpu has 4
+
+        #   reg 300 = unmaskable interrupt vector
+        #   reg 301 = maskable interrupt vector
+        #   reg 302 = software interrupt vector
+        #   reg 303 = timer 0 (no timer yet)
+
+
+
+
+status reg layout, from LSB:
+
+    0-7 = reserved for interrupts
+            0 = unmaskable hardware interrupt
+            1 = maskable hardware interrupt
+            3 = software interrupt
+
+
+control reg layout, from LSB:
+
+    0-3 = masks
+            0 = hardware interrupt mask
+            1 = software interrupt mask
+
+
+
+
+Conditions:
+	unconditional - always true
+	greater than zero
+	equal to zero
+	less than zero
+	LSB=1 - true if the first bit is one
+	MSB-1=1 - true if second to last bit is one
+	MSB=1 - true if the last bit is one
+
+
+
+
+
+grouped by length: ID not included
+
+        
+        a = address
+        
+        COND                                  ID
+        MSB----------------------------------LSB                                      TYPE  
+   d    cccc dddddddddd ssssssssss    aa 1000 01 - transfer reg space to reg space  - mem   a   0     first a is for the source
+        cccc dddddddddd iiii iiii iiii   0100 01 -      - mem   6
+   d    cccc ddddd iiii iiii iiii iiii iiii 1 01 - load imm with 5bit address, 20 data bits     - mem   7
+
+   d    cccc ddddd sssss sssss 000  1000 0000 01 - add user regs                    - alu       0    
+   n    cccc ddddd sssss sssss 100  1000 0000 01 - sub user regs                    - alu       1        
+   n    cccc ddddd sssss sssss 010  1000 0000 01 - AND                              - alu       2        
+   n    cccc ddddd sssss sssss 110  1000 0000 01 - OR                               - alu       3        
+   n    cccc ddddd sssss sssss 001  1000 0000 01 - XOR                              - alu       4        
+   n    cccc ddddd sssss sssss 101  1000 0000 01 - add in 8bit chunks               - alu       5        
+   n    cccc ddddd sssss sssss 011  1000 0000 01 - add in 16bit chunks              - alu       6        
+   n    cccc ddddd sssss sssss 111  1000 0000 01 - sub in 8bit chunks               - alu       7        
+   n    cccc ddddd sssss sssss 000  0100 0000 01 - sub in 16bit chunks              - alu       8        
+
+   d    cccc ddddd sssss aa 11 1000 0000 0000 01 - mov user regs                    - mem   a   1     no aa support, only a0 and 0a       
+
+   n    cccc rrrrr mmmmm  0000 1000 0000 0000 01 - shift by mmmmm amount L          - alu       9           
+   n    cccc rrrrr mmmmm  1000 1000 0000 0000 01 - shift by mmmmm amount R          - alu       10           
+   n    cccc rrrrr mmmmm  0100 1000 0000 0000 01 - rotate by mmmmm amount L         - alu       11          
+   n    cccc rrrrr mmmmm  1100 1000 0000 0000 01 - rotate by mmmmm amount R         - alu       12          
+   d    cccc ssssssssss   0010 1000 0000 0000 01 - push register space              - mem       2          
+   d    cccc dddddddddd   1010 1000 0000 0000 01 - pop register space               - mem       3          
+   n    cccc rrrrr bbbbb  0110 1000 0000 0000 01 - bit set                          - alu       13          
+   n    cccc rrrrr bbbbb  1110 1000 0000 0000 01 - bit clear                        - alu       14          
+   n    cccc rrrrr bbbbb  0001 1000 0000 0000 01 - bit toggle                       - alu       15          
+    
+   d    cccc ddddd sssss  a001 0000 0000 0000 01 - branch                           - mem   a   4    d is for the condition and s is for the source of the jump      
+
+   n    cccc rrrrr 0 0100 0000 0000 0000 0000 01 - inc                              - alu       16          
+   n    cccc rrrrr 0 1100 0000 0000 0000 0000 01 - dec                              - alu       17
+
+   d    cccc 10 0000 0000 0000 0000 0000 0000 01 - software interrupt               - mem       5 
+                                                                                       ^-(cuz push address to stack)
+
+
+
+d = done
+n = implemented but not tested
+
+
+
+instructions in hex with condition=0 and register all 1's and a=0, m=1, b=0:
+
+    MSB-----LSB
+ d  0f-ff-ff-21 - transfer reg space to reg space
+ d  0f-80-00-05 - load imm with 5bit address
+ d  0f-ff-e2-01 - add user regs                  
+ n  0f-ff-f2-01 - sub user regs                  
+ n  0f-ff-ea-01 - AND                            
+ n  0f-ff-fa-01 - OR                                
+ n  0f-ff-ea-01 - XOR                            
+ n  0f-ff-f6-01 - add in 8bit chunks             
+ n  0f-ff-ee-01 - add in 16bit chunks            
+ n  0f-ff-fe-01 - sub in 8bit chunks             
+ n  0f-ff-e1-01 - sub in 16bit chunks            
+ n  0f-fc-e0-01 - mov user regs                  
+ n  0f-c0-20-01 - shift by mmmmm amount L        
+ n  0f-c2-20-01 - shift by mmmmm amount R        
+ n  0f-c1-20-01 - rotate by mmmmm amount L       
+ n  0f-c3-20-01 - rotate by mmmmm amount R       
+ d  0f-fc-a0-01 - push register space            
+ d  0f-fe-a0-01 - pop register space             
+ n  0f-81-a0-01 - bit set                        
+ n  0f-83-a0-01 - bit clear                      
+ n  0f-80-60-01 - bit toggle                     
+ d  0f-fc-40-01 - branch, 2-3 instructions after it                         
+ n  0f-90-00-01 - inc                            
+ n  0f-b0-00-01 - dec                            
+ d	08-00-00-01 - software interrupt
+
+
+
+
+condition nui invertit ca regs
+
+04-10-00-01 - inc 
+28-10-00-01 - inc if zero
+08-42-02-01 - add user regs 
+0c-42-e0-01 - mov user regs
+00-20-40-01 - branch
+
+
+
+08-7f-ff-fd - load imm with 5bit address
+
