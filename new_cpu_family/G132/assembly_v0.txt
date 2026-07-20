@@ -1,0 +1,88 @@
+
+
+
+variables:
+
+	not yet
+	
+
+
+
+comments:
+	
+	if something starts with a '#' then its a comment
+	it can be put at the start of the line or after a line of code
+
+
+labels:
+
+	a line ending in ':' will be condisdered a label and will take the address after the instruction that comes before it
+	when used, a label will start with '$'
+
+	currently not implemented as the CPU does not support a "load from address" instruction
+
+
+conditions:
+
+	if the condition is always true then you can skip adding a condition
+
+	if the condition exists you must start the line with "if x " where x is the condition
+		x values:
+			">" -> x>0
+            "=" -> x=0
+            "<" -> x<0
+            "l" -> LSB=1
+            "s" -> MSB-1=1 (second to MSB is one, 1011 would give 0 abd 0100 would give one)
+            "m" -> MSB=1
+
+
+instructions:
+
+	and instruction is a 3 character string followed by its arguments
+	if the argument is a register it must have an 'r' prefix followed by the register number
+	if the register will provide an address then the prefix will be 'a', can only be used by some instructions
+
+
+		nop										- does nothing
+
+
+		trs D[R(5) or A(5)] S[R(5) or A(5)] 	- transfer reg space to reg space
+     	mov D[R(5) or A(5)] S[R(5) or A(5)]		- mov user regs
+		lim D[R(5)] [DATA(20)] 					- load imm with 5bit address, 20 data bits
+
+
+		add D[R(5)] S[R(5)] S[R(5)]				- add user regs 
+		sub D[R(5)] S[R(5)] S[R(5)]				- sub user regs 
+		ad8 D[R(5)] S[R(5)] S[R(5)]				- add in 8bit chunks
+      	a16 D[R(5)] S[R(5)] S[R(5)]				- add in 16bit chunks
+      	sb8 D[R(5)] S[R(5)] S[R(5)]				- sub in 8bit chunks
+      	s16 D[R(5)] S[R(5)] S[R(5)]				- sub in 16bit chunks
+      	inc R(5)								- increment the register
+        dec R(5)								- decrement the register
+
+
+		and D[R(5)] S[R(5)] S[R(5)]				- AND user regs
+		orr D[R(5)] S[R(5)] S[R(5)]				- OR user regs 
+		xor D[R(5)] S[R(5)] S[R(5)]				- XOR user regs  
+
+
+     	shl R(5) [DATA(5)]						- shift left by [DATA] amount
+     	shr R(5) [DATA(5)]						- shift right by [DATA] amount
+     	rol R(5) [DATA(5)]						- rotate left by [DATA] amount
+     	ror R(5) [DATA(5)]						- rotate right by [DATA] amount
+
+
+     	psh S[R(10)]							- push register to stack
+     	pop D[R(10)]							- pull register from stack
+
+
+        bst R(5) [DATA(5)]						- activate the bit at the [DATA] position
+        bcl R(5) [DATA(5)]						- clear the bit at the [DATA] position
+        btg R(5) [DATA(5)]						- toggle the bit at the [DATA] position
+
+
+        jmp D[R(5)] S[R(5) or A(5)]				- branch if the D register meets the condition to address S
+        
+
+        int 									- trigger a software interrupt
+

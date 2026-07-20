@@ -79,7 +79,7 @@ Conditions:
 
 
 
-grouped by length: ID not included
+grouped by length:
 
         
         a = address
